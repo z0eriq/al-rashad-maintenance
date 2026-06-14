@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Cairo } from "next/font/google";
+import { MetaPixel } from "@/components/analytics/MetaPixel";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SITE_CONFIG } from "@/lib/utils";
 import "./globals.css";
@@ -76,6 +77,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
+        <MetaPixel />
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
       </body>

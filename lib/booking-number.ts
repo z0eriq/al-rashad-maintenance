@@ -1,5 +1,22 @@
 import prisma from "./prisma";
 
+function getBookingPrefix(bookingCode: string, date = new Date()): string {
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yy = date.getFullYear().toString().slice(-2);
+  return `${bookingCode}${mm}${yy}`;
+}
+
+function nextSequenceFromNumbers(bookingNumbers: string[], prefix: string): number {
+  const suffixPrefix = `${prefix}-`;
+
+  return bookingNumbers.reduce((max, bookingNumber) => {
+    if (!bookingNumber.startsWith(suffixPrefix)) return max;
+
+    const sequence = Number.parseInt(bookingNumber.slice(suffixPrefix.length), 10);
+    return Number.isFinite(sequence) ? Math.max(max, sequence) : max;
+  }, -1) + 1;
+}
+
 export async function generateBookingNumber(serviceId: string): Promise<string> {
   const service = await prisma.service.findUnique({
     where: { id: serviceId },
@@ -7,21 +24,20 @@ export async function generateBookingNumber(serviceId: string): Promise<string> 
   });
 
   const code = service?.bookingCode || "X";
-  const now = new Date();
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const yy = now.getFullYear().toString().slice(-2);
-  const prefix = `${code}${mm}${yy}`;
+  const prefix = getBookingPrefix(code);
 
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-
-  const count = await prisma.appointment.count({
+  const existing = await prisma.appointment.findMany({
     where: {
       serviceId,
-      createdAt: { gte: monthStart, lte: monthEnd },
-      bookingNumber: { startsWith: prefix },
+      bookingNumber: { startsWith: `${prefix}-` },
     },
+    select: { bookingNumber: true },
   });
 
-  return `${prefix}-${count}`;
+  const sequence = nextSequenceFromNumbers(
+    existing.map((item) => item.bookingNumber),
+    prefix
+  );
+
+  return `${prefix}-${sequence}`;
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/components/ui/Toast";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 import { SITE_CONFIG } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, MapPin, MessageCircle, Phone, Send, Star } from "lucide-react";
@@ -32,6 +33,9 @@ export default function ContactPage() {
     });
     const json = await res.json();
     if (json.success) {
+      trackMetaEvent("Contact");
+      trackMetaEvent("Lead");
+
       toast(json.data.message, "success");
       reset();
     } else {

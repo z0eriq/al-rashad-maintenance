@@ -12,6 +12,7 @@ import {
   type GuestBookingInput,
 } from "@/lib/validation";
 import { formatDuration } from "@/lib/scheduling";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 import { formatDate, formatTime } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Calendar, Car, CheckCircle, Phone, User } from "lucide-react";
@@ -132,6 +133,12 @@ function BookPageContent() {
     }
 
     if (json.success) {
+      trackMetaEvent("Schedule", {
+        content_name: json.data.appointment.service.nameAr,
+        content_category: "car_maintenance",
+      });
+      trackMetaEvent("Lead");
+
       setSuccess({
         bookingNumber: json.data.bookingNumber,
         guestName: data.guestName,

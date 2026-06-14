@@ -77,26 +77,50 @@ export async function createBooking(
     };
   }
 
-  const bookingNumber = await generateBookingNumber(data.serviceId);
+  const appointmentData = {
+    customerId: customer.id,
+    serviceId: data.serviceId,
+    guestName: customer.name,
+    guestPhone: customer.phone,
+    carType: data.carType.trim(),
+    date: appointmentDate,
+    time: data.time,
+    notes: data.notes || null,
+    status: data.status || "PENDING",
+  };
 
-  const appointment = await prisma.appointment.create({
-    data: {
-      bookingNumber,
-      customerId: customer.id,
-      serviceId: data.serviceId,
-      guestName: customer.name,
-      guestPhone: customer.phone,
-      carType: data.carType.trim(),
-      date: appointmentDate,
-      time: data.time,
-      notes: data.notes || null,
-      status: data.status || "PENDING",
-    },
-    include: {
-      service: { select: { nameAr: true, duration: true, bookingCode: true } },
-      customer: { select: { id: true, name: true, phone: true } },
-    },
-  });
+  const include = {
+    service: { select: { nameAr: true, duration: true, bookingCode: true } },
+    customer: { select: { id: true, name: true, phone: true } },
+  } as const;
 
-  return { appointment, bookingNumber, duration, customer };
+  const maxAttempts = 3;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const bookingNumber = await generateBookingNumber(data.serviceId);
+
+    try {
+      const appointment = await prisma.appointment.create({
+        data: {
+          bookingNumber,
+          ...appointmentData,
+        },
+        include,
+      });
+
+      return { appointment, bookingNumber, duration, customer };
+    } catch (error) {
+      const isDuplicateBookingNumber =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "P2002";
+
+      if (!isDuplicateBookingNumber || attempt === maxAttempts - 1) {
+        throw error;
+      }
+    }
+  }
+
+  return { error: "تعذر إنشاء رقم حجز فريد. حاول مرة أخرى.", status: 409 as const };
 }

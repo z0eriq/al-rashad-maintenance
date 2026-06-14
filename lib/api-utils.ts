@@ -15,6 +15,15 @@ export function handleApiError(error: unknown) {
     return apiError(firstError, 422);
   }
 
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  ) {
+    return apiError("البيانات مسجلة مسبقاً. يرجى التحقق والمحاولة مرة أخرى.", 409);
+  }
+
   console.error("API Error:", error);
   return apiError("حدث خطأ في الخادم. يرجى المحاولة لاحقاً.", 500);
 }
