@@ -15,7 +15,8 @@ declare global {
     fbq?: (
       action: "track" | "trackCustom" | "init",
       event: string,
-      params?: MetaPixelParams
+      params?: MetaPixelParams,
+      options?: { eventID?: string }
     ) => void;
   }
 }
@@ -23,8 +24,15 @@ declare global {
 /** Fire a standard Meta Pixel event (client-side only). */
 export function trackMetaEvent(
   event: MetaPixelEvent,
-  params?: MetaPixelParams
+  params?: MetaPixelParams,
+  eventId?: string
 ): void {
   if (typeof window === "undefined" || !window.fbq) return;
+
+  if (eventId) {
+    window.fbq("track", event, params ?? {}, { eventID: eventId });
+    return;
+  }
+
   window.fbq("track", event, params);
 }

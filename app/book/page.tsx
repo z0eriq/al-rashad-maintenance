@@ -133,11 +133,15 @@ function BookPageContent() {
     }
 
     if (json.success) {
-      trackMetaEvent("Schedule", {
-        content_name: json.data.appointment.service.nameAr,
-        content_category: "car_maintenance",
-      });
-      trackMetaEvent("Lead");
+      trackMetaEvent(
+        "Schedule",
+        {
+          content_name: json.data.appointment.service.nameAr,
+          content_category: "car_maintenance",
+        },
+        json.data.metaEvents?.scheduleEventId
+      );
+      trackMetaEvent("Lead", undefined, json.data.metaEvents?.leadEventId);
 
       setSuccess({
         bookingNumber: json.data.bookingNumber,

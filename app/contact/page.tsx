@@ -33,8 +33,8 @@ export default function ContactPage() {
     });
     const json = await res.json();
     if (json.success) {
-      trackMetaEvent("Contact");
-      trackMetaEvent("Lead");
+      trackMetaEvent("Contact", undefined, json.data.metaEvents?.contactEventId);
+      trackMetaEvent("Lead", undefined, json.data.metaEvents?.leadEventId);
 
       toast(json.data.message, "success");
       reset();

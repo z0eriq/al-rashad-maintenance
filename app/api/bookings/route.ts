@@ -5,10 +5,16 @@ import {
 } from "@/lib/api-utils";
 import { createBooking } from "@/lib/create-booking";
 import { sendEmail } from "@/lib/email";
+import {
+  buildMetaUserDataFromBooking,
+  createMetaEventId,
+  sendMetaConversionEvents,
+} from "@/lib/meta-conversions";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { formatDuration } from "@/lib/scheduling";
 import { guestBookingSchema } from "@/lib/validation";
 import { formatDate, formatTime } from "@/lib/utils";
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -28,6 +34,37 @@ export async function POST(request: Request) {
     }
 
     const { appointment, bookingNumber, duration } = result;
+    const scheduleEventId = createMetaEventId();
+    const leadEventId = createMetaEventId();
+    const metaUserData = buildMetaUserDataFromBooking({
+      guestName: data.guestName,
+      guestPhone: data.guestPhone,
+    });
+
+    after(() => {
+      void sendMetaConversionEvents(request, [
+        {
+          eventName: "Schedule",
+          eventId: scheduleEventId,
+          userData: metaUserData,
+          customData: {
+            content_name: appointment.service.nameAr,
+            content_category: "car_maintenance",
+            booking_number: bookingNumber,
+          },
+        },
+        {
+          eventName: "Lead",
+          eventId: leadEventId,
+          userData: metaUserData,
+          customData: {
+            content_name: appointment.service.nameAr,
+            content_category: "car_maintenance",
+            booking_number: bookingNumber,
+          },
+        },
+      ]);
+    });
 
     const adminEmail =
       process.env.ADMIN_EMAIL ||
@@ -55,6 +92,10 @@ export async function POST(request: Request) {
       {
         bookingNumber,
         message: "تم إرسال الحجز بنجاح",
+        metaEvents: {
+          scheduleEventId,
+          leadEventId,
+        },
         appointment: {
           bookingNumber,
           guestName: appointment.guestName,
