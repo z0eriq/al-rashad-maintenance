@@ -9,6 +9,7 @@ const footerLinks = {
     { href: "/", label: "الرئيسية" },
     { href: "/about", label: "من نحن" },
     { href: "/services", label: "خدماتنا" },
+    { href: "/privacy", label: "سياسة الخصوصية" },
     { href: "/contact", label: "اتصل بنا" },
   ],
   الحجز: [
