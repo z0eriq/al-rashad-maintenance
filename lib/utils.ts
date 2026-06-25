@@ -44,6 +44,32 @@ export function slugify(text: string): string {
     .trim();
 }
 
+const DEFAULT_SITE_URL = "https://alrashad.com.iq";
+const DEFAULT_ADDRESS = "بابل - الحلة - شارع ٦٠ قرب مجسر الثورة";
+const DEFAULT_MAPS_URL = "https://maps.app.goo.gl/8Y8RAQAC7pVGJLoh7";
+
+function hasBrokenEncoding(value: string): boolean {
+  return /\?{2,}|\uFFFD/.test(value);
+}
+
+function envText(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  return value && !hasBrokenEncoding(value) ? value : fallback;
+}
+
+function envUrl(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  if (!value || hasBrokenEncoding(value)) {
+    return fallback;
+  }
+
+  try {
+    return new URL(value).toString().replace(/\/$/, "");
+  } catch {
+    return fallback;
+  }
+}
+
 export const SITE_CONFIG = {
   name: "شركة الرشاد لصيانة السيارات",
   shortName: "الرشاد",
@@ -52,22 +78,17 @@ export const SITE_CONFIG = {
   description:
     "شركة الرشاد لصيانة السيارات وتجارة قطع غيارها - المجموعة الدولية العراقية. صيانة شاملة للسيارات في الحلة، محافظة بابل منذ 2012.",
   founded: "10/1/2012",
-  url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  phone: process.env.NEXT_PUBLIC_PHONE || "07830032800",
-  phone2: process.env.NEXT_PUBLIC_PHONE2 || "07730032800",
-  email: process.env.NEXT_PUBLIC_EMAIL || "info@alrashad.com.iq",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "9647830032800",
-  address:
-    process.env.NEXT_PUBLIC_ADDRESS ||
-    "بابل - الحلة - شارع ٦٠ قرب مجسر الثورة",
-  mapsUrl:
-    process.env.NEXT_PUBLIC_MAPS_URL ||
-    "https://maps.app.goo.gl/8Y8RAQAC7pVGJLoh7",
-  mapLat: process.env.NEXT_PUBLIC_MAP_LAT || "32.4739",
-  mapLng: process.env.NEXT_PUBLIC_MAP_LNG || "44.4100",
+  url: envUrl("NEXT_PUBLIC_APP_URL", DEFAULT_SITE_URL),
+  phone: envText("NEXT_PUBLIC_PHONE", "07830032800"),
+  phone2: envText("NEXT_PUBLIC_PHONE2", "07730032800"),
+  email: envText("NEXT_PUBLIC_EMAIL", "info@alrashad.com.iq"),
+  whatsapp: envText("NEXT_PUBLIC_WHATSAPP_NUMBER", "9647830032800"),
+  address: envText("NEXT_PUBLIC_ADDRESS", DEFAULT_ADDRESS),
+  mapsUrl: envUrl("NEXT_PUBLIC_MAPS_URL", DEFAULT_MAPS_URL),
+  mapLat: envText("NEXT_PUBLIC_MAP_LAT", "32.4739"),
+  mapLng: envText("NEXT_PUBLIC_MAP_LNG", "44.4100"),
   ratingFormUrl:
-    process.env.NEXT_PUBLIC_RATING_FORM_URL ||
-    "https://forms.gle/b3SNXJd2UwpiQWHS9",
+    envUrl("NEXT_PUBLIC_RATING_FORM_URL", "https://forms.gle/b3SNXJd2UwpiQWHS9"),
 };
 
 export const SITE_SOCIAL = {
