@@ -88,7 +88,13 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-white/20 pt-6 text-center text-sm text-blue-100">
-          © {new Date().getFullYear()} {SITE_CONFIG.name}. جميع الحقوق محفوظة.
+          <p>
+            © {new Date().getFullYear()} المهندس علاء ذينات{" "}
+            <span dir="ltr">(Ala Thenat)</span>. جميع الحقوق محفوظة.
+          </p>
+          <p className="mt-1">
+            شركة بابلون تك <span dir="ltr">(Babylon Tech)</span>
+          </p>
         </div>
       </div>
     </footer>
